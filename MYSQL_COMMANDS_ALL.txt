@@ -1,0 +1,340 @@
+---------DATABASES---------------
+
+CREATE DATABASE punit;     -to create db
+SHOW DATABASES;            - to show all dbs
+USE punit;                 - to use particular db
+SELECT DATABASE();      -  which db is in use
+DROP DATABASE punit;    - to drop a db
+
+-------TABLES--------
+SHOW TABLES;
+CREATE TABLE emp(name varchar(20),age int);
+DESCRIBE emp;         - to see schema of the table
+DROP TABLE emp;
+
+----CREATE----
+CREATE TABLE students_latest 
+AS SELECT * FROM students;
+
+**it will create a new table and will copy all data without foreign constraints**
+
+-------------
+INSERT INTO emp VALUES( as per columns order for all)
+INSERT INTO emp ( COLUMNS NAME) VALUES(as per data types provided column names)
+
+----- constraints-----
+1. first_name varchar(20) NOT NULL
+2. location varchar(20) DEFAULT 'BANGLORE'
+3. empId int PRIMARY KEY
+4. PRIMARY KEY(ID)
+5. AUTO INCREMENT  -value will be increments automatically
+6. UNIQUE KEY(age)
+7. FOREIGN KEY (selected_courses) REFERENCES courses(courseId)
+here--this table is dependent on courses table.
+8. CHECK( not applicable in mysql)
+
+----SELECT------
+SELECT * FROM emp;
+SELECT column_names FROM emp where age=10;
+SELECT name FROM emp WHERE BINARY name='kumar'
+
+----UPDATE-----
+**IT IS USED FOR DATA MANIPULATION**
+UPDATE emp SET lastname='singh' WHERE firstname='PUNIT'
+**if you do not provide where condition then all records will be updated.**
+UPDATE emp SET salary=salary+5000;
+
+---DELETE-------
+DELETE FROM emp WHERE id=2;
+** if where not used all records will be deleted**
+DELETE FROM emp;
+
+----ALTER TABLE-----
+**IT IS USED FOR STRUCTURE MANIPULATION**
+ALTER TABLE emp ADD COLUMN jobtitle varchar(20);
+ALTER TABLE emp DROP COLUMN jobtitle;
+ALTER TABLE emp MODIFY COLUMN name varchar(30);
+ALTER TABLE emp DROP PRIMARY KEY;
+ALTER TABLE emp ADD PRIMARY KEY(ID);
+
+---DDL VS DML----
+DDL:deals with table structure
+eg: CREATE, ALTER, DROP, TRUNCATE
+DML: DATA MANIPULATION LANGUAGE:deals with data
+eg: INSERT,UPDATE,DELETE
+
+-----TRUNCATE--vs --DELETE--
+**Truncate delete the table and re-create the table**
+----ALIAS-----
+name AS my_name
+
+-----SESSION6-------
+DISTINCT:
+** used to get distinct data for mentioned column**
+SELECT DISTINCT locations FROM student;
+SELECT DISTINCT Coursename FROM student;
+
+ORDER BY:
+** used to sort the fetched records **
+*** ASC (by default) DESC for descending order***
+SELECT st_name,YOE FROM student ORDER BY 1 DESC;
+** 1 means 1st column in select statement**
+
+LIMIT:
+* IT gives number of records *
+** It should be used with order by for meaningful data**
+eg: 3 people with highest salary
+SELECT name FROM emp ORDER BY salary DESC LIMIT 3;
+LIMIT 0,3;  it will start from 0th row
+LIMIT 2,3: it will give 2,3,4 start will ffrom 2.
+
+
+LIKE:
+**It is used where we do not need exact match**
+eg: all names starting with P.
+SELECT names FROM emp WHERE names LIKE 'P%';
+** % wildcard character means anything any number of times**
+
+LIKE '____'
+** _ also a wildcard for exact 1 character of anything **
+first name having 5 charater LIKE '____'
+** use \ if you want system not to consider a wildcard character**
+LIKE 'Punit\_KUMAR'
+
+-----------DECIMAL & TIMESTAMP----
+DECIMAL --for float values
+** DECIMAL(5,2) It means total 5 digits atmost 2 after decimal(.)**
+TIMESTAMP DEFAULT NOW()
+** it will store system's now time**
+** if want time change on every update**
+TIMESTAMP DEFAULT NOW() ON UPDATE NOW()
+NOW() == CURRENT_TIMESTAMP
+
+
+------AGGREGATE FUNCTIONS------
+COUNT(*)
+SELECT COUNT(locations) FROM emp;
+SELECT COUNT(*) FROM emp where age>25;
+
+GROUP BY:
+SELECT source_of_joining, COUNT(*) FROM students 
+GROUP BY source_of_joining;
+** whatever you are grouping,it should be in SELECT statements**
+SELECT source_of_joining, COUNT(*) FROM students 
+GROUP BY location; --this will not work
+SELECT source_of_joining,location, COUNT(*) FROM students 
+GROUP BY source_of_joining,location;
+
+-----MIN && MAX && SUM && AVG--------
+SELECT MIN(year_Of_experience) FROM student;
+SELECT MAX(year_Of_experience) FROM student;
+SELECT source_of_joining, MAX(year_Of_experience) FROM students 
+GROUP BY source_of_joining;
+SELECT source_of_joining, SUM(year_Of_experience) FROM students 
+GROUP BY source_of_joining;
+SELECT source_of_joining, AVG(year_Of_experience) FROM students 
+GROUP BY source_of_joining;
+
+------LOGICAL OPERATORS (and,or,between,in)-----
+SELECT * FROM students WHERE years_of_experience < 8 and source_of_joining ='linkedin' and age=35;
+
+SELECT * FROM students WHERE year_of experience BETWEEN 8 AND 12;
+SELECT * FROM students WHERE year_of experience NOT BETWEEN 8 AND 12;
+
+SELECT * FROM students WHERE location='delhi' or location='mumbai' or location='goa';
+
+SELECT * FROM students WHERE location IN('delhi','mumbai','goa');
+SELECT * FROM students WHERE location NOT IN('delhi','mumbai','goa');
+
+-----CASE----
+SELECT age,
+CASE
+WHEN age>18 THEN 'YES'
+ELSE 'NO'
+END as can_vote
+FROM students;
+
+======JOINS====MOST IMPORTANT===
+by default join is INNER JOIN where all matching records will be fetched. Non matching records are discarded.
+
+SELECT s.student_name,c.course_name FROM student s JOIN courses c ON s.selected_course=c.courseId;
+
+---LEFT JOIN----
+all the matching records are considered
++
+all the non matching records in the left table which does not have match in the right
+
+SELECT s.student_name,c.course_name FROM student s LEFT JOIN courses c ON s.selected_course=c.courseId;
+
+---RIGHT OUTER JOIN----
+all the matching records are considered
++
+all the non matching records in the right table which does not have match in the left
+
+SELECT s.student_name,c.course_name FROM student s RIGHT JOIN courses c ON s.selected_course=c.courseId;
+
+--FULL OUTER JOIN(UNION)===no such keyword in MYSQL
+all the matching records
++
+non matching records from left
++
+non matching records from right
+
+SELECT s.student_name,c.course_name FROM student s LEFT JOIN courses c ON s.selected_course=c.courseId;
+UNION
+SELECT s.student_name,c.course_name FROM student s RIGHT JOIN courses c ON s.selected_course=c.courseId;
+
+
+---CROSS JOIN----
+each from left with each from right;
+in left(4)
+in right(5)
+then cross join will give =4*5=20 records
+
+SELECT * FROM students,courses;
+
+------WHERE vs HAVING------
+WHERE: clause is used to filter the individual records before aggregation.
+HAVING: clause is used to filter the records produced after group by clause.
+##below query will not work
+SELECT source_of_joining, COUNT(*) AS total FROM 
+students GROUP BY source_of_joining WHERE total>1;
+
+SELECT source_of_joining, COUNT(*) AS total FROM 
+students GROUP BY source_of_joining HAVING total>1;
+
+WE use WHERE clause before GROUP BY to filter the individual records.
+WE use HAVING clause AFTER GROUP BY to filter the aggregated records.
+
+SELECT source_of_joining, COUNT(*) AS total FROM 
+students WHERE location='DELHI' GROUP BY source_of_joining HAVING total>1;
+
+WHERE is more IMPORTANT than HAVING;
+
+
+======WINDOWING FUNCTIONS=====older version not support
+https://onecompiler.com/mysql
+
+We use OVER PARTITION BY to get both non aggregated and aggregated columns with JOIN.
+
+SELECT name,location,
+COUNT(location) OVER (PARTITION BY location) as total
+AVG(salary) OVER (PARTITION BY location) as average
+FROM emp;
+
+-----ROW_NUMBER()------
+here ORDER BY is must other no use of using this.
+it does not consider duplicates.
+
+--find the 3rd highest salary
+SELECT * FROM ( SELECT name, row_number() OVER(ORDER BY salary DESC) AS rownum FROM emp) temp where rownum = 3;
+--I want highest salary from each location
+SELECT * FROM ( SELECT name,location,salary, row_number() OVER(PARTITION BY location ORDER BY salary DESC) AS rownum FROM emp) temp where rownum = 1;
+
+====RANK && DENSE RANK====
+
+In both ORDER BY is mandatory.
+PARTITION BY is optional.
+
+RANK(): it gives same RANK to duplicates and skip the next rank
+
+4k  1
+3k  2
+3k  2
+2k  4
+
+DENSE_RANK(): it gives same RANK to duplicates and IT DOES NOT skip the next rank
+
+4k  1
+3k  2
+3k  2
+2k  3
+
+
+WHEN there are no duplicates use row_number().
+
+SELECT name, RANK() OVER(ORDER BY salary DESC) AS rank FROM emp;
+
+SELECT name, DENSE_RANK() OVER(ORDER BY salary DESC) AS drank FROM emp;
+
+
+
+===STORED PROCEDURE======
+**So if you have an SQL query that you write over and over again, save it as a stored procedure, and then just call it to execute it.**
+
+below is how we create:-
+
+CREATE PROCEDURE procedure_name
+AS
+sql_statement
+
+below is how we execute it:-
+
+EXEC procedure_name;
+
+for example:
+
+CREATE PROCEDURE SelectAllCustomers
+AS
+SELECT * FROM Customers
+
+EXEC SelectAllCustomers;
+git
+
+** stored procedure can be parameterized**
+CREATE PROCEDURE SelectAllCustomers @City nvarchar(30), @PostalCode nvarchar(10)
+AS
+SELECT * FROM Customers WHERE City = @City AND PostalCode = @PostalCode
+
+now pass the dynamic values at execution time:
+
+EXEC SelectAllCustomers @City = 'London', @PostalCode = 'WA1 1DP';
+
+
+####### VIEWS ###########
+**In SQL, a view is a virtual table based on the result-set of an SQL statement. A view contains rows and columns, just like a real table. The fields in a view are fields from one or more real tables in the database.**
+
+CREATE VIEW studentdata
+AS
+SELECT id,name,course_name FROM student s JOIN courses c ON s.courses = c.course_id;
+
+SELECT * FROM studentdata;
+
+To change view:
+use ALTER or CREATE OR REPLACE VIEW
+ 
+ALTER VIEW studentdata
+AS
+SELECT id,name,course_name FROM student s JOIN courses c ON s.courses = c.course_id JOIN city c
+ON s.city = c.cid;
+
+to rename VIEW:
+RENAME TABLE studentdata
+TO studentcoursedata;
+
+to drop VIEW:
+DROP VIEW studentcourse;
+
+
+
+
+
+
+
+
+======DATA=========
+
+CREATE TABLE emp(
+name varchar(20),
+age int,
+salary int,
+location varchar(20)
+);
+
+INSERT INTO emp VALUES ('punit',28,10000,'delhi');
+INSERT INTO emp VALUES ('sunit',30,20000,'mumbai');
+INSERT INTO emp VALUES ('sachin',32,30000,'goa');
+INSERT INTO emp VALUES ('monu',35,40000,'shimla');
+INSERT INTO emp VALUES ('sonu',40,50000,'delhi');
+INSERT INTO emp VALUES ('shiva',50,60000,'goa');
+INSERT INTO emp VALUES ('anil',32,70000,'delhi');
